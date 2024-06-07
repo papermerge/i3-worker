@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
-from s3worker.config import get_settings
+from i3worker.config import get_settings
 
 settings = get_settings()
 

@@ -2,20 +2,24 @@ import logging
 from uuid import UUID
 from celery import shared_task
 
-from i3worker import db
-from s3worker import constants as const
+from i3worker import db, constants
+from i3worker.config import get_settings
+from i3worker.schema import IndexEntity
+from salinic import IndexRW, create_engine
 
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 RETRY_KWARGS = {
     'max_retries': 7,  # number of times to retry the task
     'countdown': 5  # Time in seconds to delay the retry for.
 }
 
+
 def get_index():
     engine = create_engine(settings.SEARCH_URL)
-    return IndexRW(engine, schema=Model)
+    return IndexRW(engine, schema=IndexEntity)
 
 
 @shared_task(
@@ -52,7 +56,7 @@ def index_add_node(node_id: str):
     autoretry_for=(Exception,),
     retry_kwargs=RETRY_KWARGS
 )
-def index_add_docs(doc_ids: List[str]):
+def index_add_docs(doc_ids: list[str]):
     """Add list of documents to index"""
     logger.debug(f"Add docs with {doc_ids} BEGIN")
     docs = Document.objects.filter(pk__in=doc_ids)
@@ -72,7 +76,7 @@ def index_add_docs(doc_ids: List[str]):
     autoretry_for=(Exception,),
     retry_kwargs=RETRY_KWARGS
 )
-def remove_folder_or_page_from_index(item_ids: List[str]):
+def remove_folder_or_page_from_index(item_ids: list[str]):
     """Removes folder or page from search index
     """
     logger.debug(f'Removing folder or page {item_ids} from index')
@@ -96,7 +100,7 @@ def remove_folder_or_page_from_index(item_ids: List[str]):
     autoretry_for=(Exception,),
     retry_kwargs=RETRY_KWARGS
 )
-def add_pages_to_index(page_ids: List[str]):
+def add_pages_to_index(page_ids: list[str]):
     index_entities = [from_page(page_id) for page_id in page_ids]
     logger.debug(
         f"Add pages to index: {index_entities}"
@@ -150,7 +154,7 @@ def update_index(add_ver_id: str, remove_ver_id: str):
             logger.debug("Empty page ids. Nothing to remove from index")
 
 
-def from_page(page_id: str) -> Model:
+def from_page(page_id: str) -> IndexEntity:
     """Given page_id returns index entity"""
     page = Page.objects.get(pk=page_id)
     last_doc_ver = page.document_version
@@ -164,7 +168,7 @@ def from_page(page_id: str) -> Model:
             f" doc.ID={doc.id}"
         )
 
-    index_entity = Model(
+    index_entity = IndexEntity(
         id=str(page.id),
         title=doc.title,
         user_id=str(doc.user_id),
@@ -190,8 +194,8 @@ def from_page(page_id: str) -> Model:
     return index_entity
 
 
-def from_folder(node: BaseTreeNode) -> Model:
-    index_entity = Model(
+def from_folder(node: BaseTreeNode) -> IndexEntity:
+    index_entity = IndexEntity(
         id=str(node.id),
         title=node.title,
         user_id=str(node.user_id),
@@ -231,7 +235,7 @@ def from_document(node: BaseTreeNode | Document) -> List[Model]:
                 f" node.ID={node.id}"
             )
 
-        index_entity = Model(
+        index_entity = IndexEntity(
             id=str(page.id),
             title=node.title,
             user_id=str(node.user_id),

@@ -10,7 +10,7 @@ FOLDER = 'folder'
 PAGE = 'page'
 
 
-class Model(Schema):
+class IndexEntity(Schema):
     """Index entity
 
     Documents are indexed by page. Note that we place in same index

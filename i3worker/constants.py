@@ -1,0 +1,5 @@
+INDEX_ADD_NODE = 'index_add_node'
+INDEX_ADD_DOCS = 'index_add_docs'
+INDEX_ADD_PAGES = 'index_add_pages'
+INDEX_REMOVE_NODE = 'index_remove_node'
+INDEX_UPDATE = 'index_update'
