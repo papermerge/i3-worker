@@ -4,7 +4,7 @@ from celery import shared_task
 
 from i3worker import db, constants
 from i3worker.config import get_settings
-from i3worker.schema import IndexEntity
+from i3worker.schema import IndexEntity, PAGE, FOLDER
 from salinic import IndexRW, create_engine
 
 
@@ -175,20 +175,9 @@ def from_page(page_id: str) -> IndexEntity:
         document_id=str(doc.id),
         document_version_id=str(last_doc_ver.id),
         page_number=page.number,
-        page_count=page.page_count,
         text=page.text,
-        parent_id=str(doc.parent_id),
         entity_type=PAGE,
-        tags=[
-            ColoredTag(
-                name=tag.name,
-                fg_color=tag.fg_color,
-                bg_color=tag.bg_color
-            ) for tag in doc.tags.all()
-        ],
-        breadcrumb=[
-            (str(item[0]), item[1]) for item in doc.breadcrumb
-        ]
+        tags=[tag.name for tag in doc.tags],
     )
 
     return index_entity
