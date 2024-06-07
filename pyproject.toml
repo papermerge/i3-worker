@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "i3worker"
+version = "0.1.0"
+description = "Sync DB with search index"
+authors = ["Eugen Ciur <eugen@papermerge.com>"]
+readme = "README.md"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+celery = {version = "^5.4", extras = ["redis"]}
+salinic = "^0.4.0"
+typer = "^0.12.3"
+pydantic = "^2.7.1"
+pydantic-settings = "^2.2.1"
+pyyaml = "^6.0.1"
+pdf2image = "^1.17.0"
+sqlalchemy = "^2.0.30"
+psycopg2 = { version = "^2.9.2", optional = true}
+psycopg2-binary = { version = "^2.9.2", optional = true}
+mysqlclient = {version = "^2.2.0", optional = true}
+rich = "^13.7.1"
+
+[tool.poetry.extras]
+mysql = ["mysqlclient"]
+pgsql = ["psycopg2", "psycopg2-binary"]
+databases = ["mysqlclient", "psycopg2"]
+
+[tool.poetry.scripts]
+i3w = 'i3worker.cli.i3w:app'
+
+[tool.poetry.group.dev.dependencies]
+taskipy = "^1.12.2"
+
+[tool.taskipy.tasks]
+worker = "celery -A s3worker worker -E -c 4 --loglevel debug -Q s3,s3preview"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
