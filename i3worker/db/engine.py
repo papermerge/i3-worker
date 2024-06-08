@@ -16,5 +16,6 @@ if SQLALCHEMY_DATABASE_URL.startswith('sqlite'):
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args=connect_args,
-    poolclass=NullPool
+    poolclass=NullPool,
+    echo=True
 )

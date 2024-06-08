@@ -7,6 +7,8 @@ from .doc_ver import (
 )
 from .node import get_node
 from .session import get_db
+from .engine import engine
+from .base import Base
 
 __all__ = [
     'get_last_version',
@@ -16,4 +18,6 @@ __all__ = [
     'get_pages',
     'get_page',
     'get_db',
+    'Base',
+    'engine'
 ]

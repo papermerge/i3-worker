@@ -53,7 +53,6 @@ def index_add_node(node_id: str):
         index.add(item)
 
 
-
 @shared_task(
     name=constants.INDEX_ADD_DOCS,
     autoretry_for=(Exception,),
