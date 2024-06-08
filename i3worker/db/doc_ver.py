@@ -6,9 +6,11 @@ from i3worker import models
 from i3worker.db.models import (Document, DocumentVersion, Page)
 
 
-def get_docs(db_session: Session) -> list[models.Document]:
+def get_docs(db_session: Session, doc_ids: list[UUID]) -> list[models.Document]:
     with db_session as session:  # noqa
-        stmt = select(Document)
+        stmt = select(Document).where(
+            Document.id.in_(doc_ids)
+        )
         db_docs = session.scalars(stmt).all()
         model_docs = [
             models.Document.model_validate(db_doc) for db_doc in db_docs
@@ -31,6 +33,22 @@ def get_last_version(
         ).order_by(
             DocumentVersion.number.desc()
         ).limit(1)
+        db_doc_ver = session.scalars(stmt).one()
+        model_doc_ver = models.DocumentVersion.model_validate(db_doc_ver)
+
+    return model_doc_ver
+
+
+def get_doc_ver(
+    db_session: Session,
+    id: UUID  # noqa
+) -> models.DocumentVersion:
+    """
+    Returns last version of the document
+    identified by doc_id
+    """
+    with Session(engine) as session:  # noqa
+        stmt = select(DocumentVersion).where(DocumentVersion.id == id)
         db_doc_ver = session.scalars(stmt).one()
         model_doc_ver = models.DocumentVersion.model_validate(db_doc_ver)
 
@@ -66,3 +84,23 @@ def get_pages(
         ]
 
     return list(result)
+
+
+def get_page(
+    db_session: Session,
+    id: UUID,
+) -> models.Page:
+    with db_session as session:
+        stmt = select(Page).join(DocumentVersion).join(Document).where(
+            Page.id == id,
+        )
+        try:
+            db_page = session.scalars(stmt).one()
+        except exc.NoResultFound:
+            session.close()
+            raise Exception(
+                f"PageID={id} not found"
+            )
+        result = models.Page.model_validate(db_page)
+
+    return result

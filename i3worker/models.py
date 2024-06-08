@@ -1,5 +1,28 @@
+from enum import Enum
 from uuid import UUID
 from pydantic import (BaseModel, ConfigDict, Field)
+
+
+class Tag(BaseModel):
+    name: str
+    bg_color: str = '#c41fff'
+    fg_color: str = '#FFFFF'
+
+    # Config
+    model_config = ConfigDict(from_attributes=True)
+
+
+class NodeType(str, Enum):
+    document = "document"
+    folder = "folder"
+
+
+class Node(BaseModel):
+    id: UUID
+    ctype: NodeType
+
+    # Config
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Page(BaseModel):
@@ -27,6 +50,15 @@ class DocumentVersion(BaseModel):
 class Document(BaseModel):
     id: UUID
     versions: list[DocumentVersion] = []
-
+    title: str
+    tags: list[Tag] = []
+    user_id: UUID
     # Config
     model_config = ConfigDict(from_attributes=True)
+
+
+class Folder(BaseModel):
+    id: UUID
+    title: str
+    tags: list[Tag] = []
+    user_id: UUID

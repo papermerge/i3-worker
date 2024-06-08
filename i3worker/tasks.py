@@ -1,8 +1,10 @@
+import uuid
 import logging
-from uuid import UUID
 from celery import shared_task
+from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
-from i3worker import db, constants
+from i3worker import db, constants, models
 from i3worker.config import get_settings
 from i3worker.schema import IndexEntity, PAGE, FOLDER
 from salinic import IndexRW, create_engine
@@ -35,19 +37,20 @@ def index_add_node(node_id: str):
     In other words, if folder was already indexed (added before), its record
     in index will be updated otherwise its record will be inserted.
     """
-    node = BaseTreeNode.objects.get(pk=node_id)
+    db_session = db.get_db()
+    node = db.get_node(db_session)
 
     logger.debug(f'ADD node title={node.title} ID={node.id} to INDEX')
     index = get_index()
 
-    if node.is_document:
-        models = from_document(node)
+    if node.ctype == models.NodeType.document:
+        items = from_document(db_session, node)
     else:
-        models = [from_folder(node)]
+        items = [from_folder(db_session, node)]
 
-    logger.debug(f"Adding to index {models}")
-    for model in models:
-        index.add(model)
+    logger.debug(f"Adding to index {items}")
+    for item in items:
+        index.add(item)
 
 
 
@@ -59,7 +62,11 @@ def index_add_node(node_id: str):
 def index_add_docs(doc_ids: list[str]):
     """Add list of documents to index"""
     logger.debug(f"Add docs with {doc_ids} BEGIN")
-    docs = Document.objects.filter(pk__in=doc_ids)
+    db_session = db.get_db()
+    docs = db.get_docs(
+        db_session,
+        [uuid.UUID(doc_id) for doc_id in doc_ids]
+    )
     index = get_index()
 
     for doc in docs:
@@ -101,7 +108,8 @@ def remove_folder_or_page_from_index(item_ids: list[str]):
     retry_kwargs=RETRY_KWARGS
 )
 def add_pages_to_index(page_ids: list[str]):
-    index_entities = [from_page(page_id) for page_id in page_ids]
+    db_session = db.get_db()
+    index_entities = [from_page(db_session, page_id) for page_id in page_ids]
     logger.debug(
         f"Add pages to index: {index_entities}"
     )
@@ -124,17 +132,18 @@ def update_index(add_ver_id: str, remove_ver_id: str):
     logger.debug(
         f"Index Update: add={add_ver_id}, remove={remove_ver_id}"
     )
+    db_session = db.get_db()
     add_ver = None
     remove_ver = None
     try:
-        add_ver = DocumentVersion.objects.get(pk=add_ver_id)
-    except DocumentVersion.DoesNotExist:
+        add_ver = db.get_doc_ver(db_session, uuid.UUID(add_ver_id))
+    except exc.NoResultFound:
         logger.debug(
             f"Index add doc version {add_ver_id} not found."
         )
     try:
-        remove_ver = DocumentVersion.objects.get(pk=remove_ver_id)
-    except DocumentVersion.DoesNotExist:
+        remove_ver = db.get_doc_ver(db_session, uuid.UUID(remove_ver_id))
+    except exc.NoResultFound:
         logger.warning(f"Index remove doc version {remove_ver_id} not found")
 
     if add_ver:  # doc ver is there, but does it have pages?
@@ -154,9 +163,9 @@ def update_index(add_ver_id: str, remove_ver_id: str):
             logger.debug("Empty page ids. Nothing to remove from index")
 
 
-def from_page(page_id: str) -> IndexEntity:
+def from_page(db_session: Session, page_id: str) -> IndexEntity:
     """Given page_id returns index entity"""
-    page = Page.objects.get(pk=page_id)
+    page = db.get_page(db_session, uuid.UUID(page_id))
     last_doc_ver = page.document_version
     doc = last_doc_ver.document
 
@@ -183,38 +192,28 @@ def from_page(page_id: str) -> IndexEntity:
     return index_entity
 
 
-def from_folder(node: BaseTreeNode) -> IndexEntity:
+def from_folder(db_session: Session, node: models.Node) -> IndexEntity:
     index_entity = IndexEntity(
         id=str(node.id),
         title=node.title,
         user_id=str(node.user_id),
         entity_type=FOLDER,
-        parent_id=str(node.parent_id),
-        tags=[
-            ColoredTag(
-                name=tag.name,
-                fg_color=tag.fg_color,
-                bg_color=tag.bg_color
-            ) for tag in node.tags.all()
-        ],
-        breadcrumb=[
-            (str(item[0]), item[1]) for item in node.breadcrumb
-        ]
+        tags=[tag.name for tag in node.tags]
     )
 
     return index_entity
 
 
-def from_document(node: BaseTreeNode | Document) -> List[Model]:
+def from_document(db_session: Session, node: models.Node | models.Document) -> list[IndexEntity]:
     result = []
-    if isinstance(node, BaseTreeNode):
+    if isinstance(node, models.Node):
         doc = node.document
     else:
         doc = node  # i.e. node is instance of Document
 
-    last_ver: DocumentVersion = doc.versions.last()
+    last_ver: models.DocumentVersion = db.get_last_version(node.id)
 
-    for page in last_ver.pages.all():
+    for page in db.get_pages(db_session, node.id):
         if len(page.text) == 0 and last_ver.number > 1:
             logger.warning(
                 f"NO OCR TEXT FOUND! version={last_ver.number} "
@@ -231,20 +230,9 @@ def from_document(node: BaseTreeNode | Document) -> List[Model]:
             document_id=str(node.document.id),
             document_version_id=str(last_ver.id),
             page_number=page.number,
-            page_count=page.page_count,
             text=page.text,
-            parent_id=str(node.parent_id),
             entity_type=PAGE,
-            tags=[
-                ColoredTag(
-                    name=tag.name,
-                    fg_color=tag.fg_color,
-                    bg_color=tag.bg_color
-                ) for tag in node.tags.all()
-            ],
-            breadcrumb=[
-                (str(item[0]), item[1]) for item in node.breadcrumb
-            ]
+            tags=[tag.name for tag in node.tags],
         )
         result.append(index_entity)
 
