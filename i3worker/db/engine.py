@@ -17,5 +17,4 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args=connect_args,
     poolclass=NullPool,
-    echo=True
 )

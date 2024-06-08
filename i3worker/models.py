@@ -20,6 +20,7 @@ class NodeType(str, Enum):
 class Node(BaseModel):
     id: UUID
     ctype: NodeType
+    tags: list[str]
 
     # Config
     model_config = ConfigDict(from_attributes=True)

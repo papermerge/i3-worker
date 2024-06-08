@@ -89,12 +89,14 @@ class Page(Base):
 
 class Tag(Base):
     __tablename__ = "core_tag"
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True
+    )
     name: Mapped[str]
-    bg_color: Mapped[str]
-    fg_color: Mapped[str]
-    description: Mapped[str]
-    pinned: Mapped[bool]
+    bg_color: Mapped[str] = "#ff0000"
+    fg_color: Mapped[str] = "#ffff00"
+    description: Mapped[str] = ""
+    pinned: Mapped[bool] = False
 
 
 class ColoredTag(Base):
