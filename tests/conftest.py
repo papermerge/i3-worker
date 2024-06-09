@@ -73,35 +73,6 @@ def folder_factory(session, socrates):
 
 
 @pytest.fixture(scope="function")
-def node_with_tags(session, socrates):
-    tag_one = Tag(name="one", id=uuid.uuid4())
-    tag_two = Tag(name="two", id=uuid.uuid4())
-    session.add(tag_one)
-    session.add(tag_two)
-    session.commit()
-
-    folder_id = uuid.uuid4()
-
-    folder = Folder(
-        id=folder_id,
-        ctype="folder",
-        title="Scrolls",
-        lang="en",
-        user_id=socrates.id
-    )
-    session.add(folder)
-    session.commit()
-
-    session.add_all([
-        ColoredTag(id=1, object_id=folder_id, tag_id=tag_one.id),
-        ColoredTag(id=2, object_id=folder_id, tag_id=tag_two.id)
-    ])
-    session.commit()
-
-    return folder
-
-
-@pytest.fixture(scope="function")
 def doc_factory(session, socrates):
 
     def _create_doc(
