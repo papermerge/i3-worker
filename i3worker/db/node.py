@@ -20,7 +20,9 @@ def get_node(
             ColoredTag.object_id==node_id
         )
         colored_tags = session.scalars(colored_tags_stmt).all()
-        db_node.tags = _get_tags_for(colored_tags, db_node.id)
+        db_node.tags = [
+            tag.name for tag in _get_tags_for(colored_tags, db_node.id)
+        ]
 
         model_node = models.Node.model_validate(db_node)
 
