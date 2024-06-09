@@ -42,16 +42,29 @@ def socrates(session):
 def folder_factory(session, socrates):
     def _create_folder(
         title: str,
+        tags: list[str] | None = None
     ):
+        folder_id = uuid.uuid4()
         folder = Folder(
-            id=uuid.uuid4(),
+            id=folder_id,
             ctype="folder",
             title=title,
             lang="en",
             user_id=socrates.id
         )
-
         session.add(folder)
+
+        for index, name in enumerate(tags or []):
+            tag_id = uuid.uuid4()
+            db_tag = Tag(name=name, id=tag_id)
+            db_colored_tag = ColoredTag(
+                id=index + 1,
+                object_id=folder_id,
+                tag_id=tag_id
+            )
+            session.add(db_tag)
+            session.add(db_colored_tag)
+
         session.commit()
 
         return folder

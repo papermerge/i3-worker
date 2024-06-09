@@ -43,8 +43,10 @@ def test_from_page(session, page_factory):
     assert index_entity.entity_type == PAGE
 
 
-def test_get_node_with_tags(session, node_with_tags):
+def test_get_node_with_tags(session, folder_factory):
     """`get_node` should return correctly node/folder with tags"""
-    node = db.get_node(session, node_with_tags.id)
+
+    folder = folder_factory(title="My Folder", tags=["one", "two"])
+    node = db.get_node(session, folder.id)
 
     assert set(node.tags) == {'one', 'two'}
