@@ -7,7 +7,6 @@ from logging.config import dictConfig
 
 settings = config.get_settings()
 
-
 app = Celery(
     'i3worker',
     broker=settings.papermerge__redis__url,
@@ -29,7 +28,8 @@ app.conf.update(
 
 @setup_logging.connect
 def config_loggers(*args, **kwags):
-    utils.setup_logging(settings.papermerge__main__logging_cfg)
+    if settings.papermerge__main__logging_cfg:
+        utils.setup_logging(settings.papermerge__main__logging_cfg)
 
 
 if __name__ == '__main__':

@@ -19,7 +19,9 @@ class NodeType(str, Enum):
 
 class Node(BaseModel):
     id: UUID
+    title: str
     ctype: NodeType
+    user_id: UUID
     tags: list[str]
 
     # Config

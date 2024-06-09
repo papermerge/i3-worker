@@ -13,22 +13,13 @@ from salinic import IndexRW, create_engine
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-RETRY_KWARGS = {
-    'max_retries': 7,  # number of times to retry the task
-    'countdown': 5  # Time in seconds to delay the retry for.
-}
-
 
 def get_index():
-    engine = create_engine(settings.SEARCH_URL)
+    engine = create_engine(settings.papermerge__search__url)
     return IndexRW(engine, schema=IndexEntity)
 
 
-@shared_task(
-    name=constants.INDEX_ADD_NODE,
-    autoretry_for=(Exception,),
-    retry_kwargs=RETRY_KWARGS
-)
+@shared_task(name=constants.INDEX_ADD_NODE)
 def index_add_node(node_id: str):
     """Add node to the search index
 
@@ -37,27 +28,24 @@ def index_add_node(node_id: str):
     In other words, if folder was already indexed (added before), its record
     in index will be updated otherwise its record will be inserted.
     """
+    logger.debug('Task started')
     db_session = db.get_db()
-    node = db.get_node(db_session)
+    with db_session() as session:
+        node = db.get_node(session, uuid.UUID(node_id))
+        index = get_index()
+        logger.debug(f'Node={node}')
 
-    logger.debug(f'ADD node title={node.title} ID={node.id} to INDEX')
-    index = get_index()
-
-    if node.ctype == models.NodeType.document:
-        items = from_document(db_session, node)
-    else:
-        items = [from_folder(db_session, node)]
+        if node.ctype == models.NodeType.document:
+            items = from_document(session, node)
+        else:
+            items = [from_folder(session, node)]
 
     logger.debug(f"Adding to index {items}")
     for item in items:
         index.add(item)
 
 
-@shared_task(
-    name=constants.INDEX_ADD_DOCS,
-    autoretry_for=(Exception,),
-    retry_kwargs=RETRY_KWARGS
-)
+@shared_task(name=constants.INDEX_ADD_DOCS)
 def index_add_docs(doc_ids: list[str]):
     """Add list of documents to index"""
     logger.debug(f"Add docs with {doc_ids} BEGIN")
@@ -77,11 +65,7 @@ def index_add_docs(doc_ids: list[str]):
     logger.debug(f"Add docs with {doc_ids} END")
 
 
-@shared_task(
-    name=constants.INDEX_REMOVE_NODE,
-    autoretry_for=(Exception,),
-    retry_kwargs=RETRY_KWARGS
-)
+@shared_task(name=constants.INDEX_REMOVE_NODE)
 def remove_folder_or_page_from_index(item_ids: list[str]):
     """Removes folder or page from search index
     """
@@ -101,11 +85,7 @@ def remove_folder_or_page_from_index(item_ids: list[str]):
     logger.debug('End of remove_folder_or_page_from_index')
 
 
-@shared_task(
-    name=constants.INDEX_ADD_PAGES,
-    autoretry_for=(Exception,),
-    retry_kwargs=RETRY_KWARGS
-)
+@shared_task(name=constants.INDEX_ADD_PAGES)
 def add_pages_to_index(page_ids: list[str]):
     db_session = db.get_db()
     index_entities = [
@@ -119,11 +99,7 @@ def add_pages_to_index(page_ids: list[str]):
         index.add(model)
 
 
-@shared_task(
-    name=constants.INDEX_UPDATE,
-    autoretry_for=(Exception,),
-    retry_kwargs=RETRY_KWARGS
-)
+@shared_task(name=constants.INDEX_UPDATE)
 def update_index(add_ver_id: str, remove_ver_id: str):
     """Updates index
 

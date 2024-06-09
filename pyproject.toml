@@ -37,7 +37,7 @@ taskipy = "^1.12.2"
 pytest = "^8.2.2"
 
 [tool.taskipy.tasks]
-worker = "celery -A s3worker worker -E -c 4 --loglevel debug -Q s3,s3preview"
+worker = "celery -A i3worker worker -E -c 4 -Q i3"
 
 [build-system]
 requires = ["poetry-core"]
