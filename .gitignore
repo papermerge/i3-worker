@@ -1,6 +1,5 @@
 *.pid
 .idea/
-.papermerge.toml
 .env
 .envrc
 .env_services

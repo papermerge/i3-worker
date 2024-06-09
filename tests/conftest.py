@@ -35,29 +35,35 @@ def socrates(session):
     session.add(user)
     session.commit()
 
-    return user
+    yield user
+
+    session.delete(user)
+    session.commit()
 
 
 @pytest.fixture(scope="function")
 def seed_two_folders(session, socrates):
-    session.add_all(
-        [
-            Folder(
-                id=uuid.uuid4(),
-                ctype="folder",
-                title="My Documents",
-                lang="en",
-                user_id=socrates.id
-            ),
-            Folder(
-                id=uuid.uuid4(),
-                ctype="folder",
-                title="Inbox",
-                lang="en",
-                user_id=socrates.id
-            ),
-        ]
+    folder1 = Folder(
+        id=uuid.uuid4(),
+        ctype="folder",
+        title="My Documents",
+        lang="en",
+        user_id=socrates.id
     )
+    folder2 = Folder(
+        id=uuid.uuid4(),
+        ctype="folder",
+        title="Inbox",
+        lang="en",
+        user_id=socrates.id
+    )
+    session.add_all([folder1, folder2])
+    session.commit()
+
+    yield
+
+    session.delete(folder1)
+    session.delete(folder2)
     session.commit()
 
 
@@ -87,7 +93,12 @@ def node_with_tags(session, socrates):
     ])
     session.commit()
 
-    return folder
+    yield folder
+
+    session.delete(folder)
+    session.delete(tag_one)
+    session.delete(tag_two)
+    session.commit()
 
 
 @pytest.fixture(scope="function")
@@ -100,4 +111,9 @@ def seed_receipt_doc(session, socrates):
         user_id=socrates.id
     )
     session.add(doc)
+    session.commit()
+
+    yield
+
+    session.delete(doc)
     session.commit()
