@@ -30,7 +30,8 @@ class Page(BaseModel):
     id: UUID
     number: int
     document_version_id: UUID
-
+    lang: str = 'en'
+    text: str = ''
     # Config
     model_config = ConfigDict(from_attributes=True)
 

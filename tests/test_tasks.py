@@ -5,8 +5,10 @@ from i3worker.tasks import from_folder, from_document
 from i3worker.schema import PAGE, FOLDER
 
 
-def test_from_folder(session, seed_two_folders):
+def test_from_folder(session, folder_factory):
     """`from_folder` should return index_entity"""
+    folder_factory(title="My Documents")
+
     some_node = session.scalars(
         select(Node).where(Node.title=="My Documents")
     ).one()
@@ -16,11 +18,14 @@ def test_from_folder(session, seed_two_folders):
     assert index_entity.entity_type == FOLDER
 
 
-def test_from_document(session, seed_receipt_doc):
+def test_from_document(session, doc_factory):
     """`from_document` should return list of index_entities"""
+    doc_factory(title="receipt_001.pdf", page_count=2)
+
     some_node = session.scalars(
         select(Node).where(Node.title=="receipt_001.pdf")
     ).one()
+
     index_entities = from_document(session, some_node)
 
     assert index_entities[0].title == "receipt_001.pdf"

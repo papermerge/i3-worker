@@ -210,9 +210,8 @@ def from_document(db_session: Session, node: models.Node | models.Document) -> l
     else:
         doc = node  # i.e. node is instance of Document
 
-    last_ver: models.DocumentVersion = db.get_last_version(node.id)
-
-    for page in db.get_pages(db_session, node.id):
+    last_ver: models.DocumentVersion = db.get_last_version(db_session, node.id)
+    for page in db.get_pages(db_session, last_ver.id):
         if len(page.text) == 0 and last_ver.number > 1:
             logger.warning(
                 f"NO OCR TEXT FOUND! version={last_ver.number} "
@@ -226,12 +225,12 @@ def from_document(db_session: Session, node: models.Node | models.Document) -> l
             id=str(page.id),
             title=node.title,
             user_id=str(node.user_id),
-            document_id=str(node.document.id),
+            document_id=str(node.id),
             document_version_id=str(last_ver.id),
             page_number=page.number,
             text=page.text,
             entity_type=PAGE,
-            tags=[tag.name for tag in node.tags],
+            tags=node.tags,
         )
         result.append(index_entity)
 

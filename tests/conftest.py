@@ -35,36 +35,28 @@ def socrates(session):
     session.add(user)
     session.commit()
 
-    yield user
-
-    session.delete(user)
-    session.commit()
+    return user
 
 
 @pytest.fixture(scope="function")
-def seed_two_folders(session, socrates):
-    folder1 = Folder(
-        id=uuid.uuid4(),
-        ctype="folder",
-        title="My Documents",
-        lang="en",
-        user_id=socrates.id
-    )
-    folder2 = Folder(
-        id=uuid.uuid4(),
-        ctype="folder",
-        title="Inbox",
-        lang="en",
-        user_id=socrates.id
-    )
-    session.add_all([folder1, folder2])
-    session.commit()
+def folder_factory(session, socrates):
+    def _create_folder(
+        title: str,
+    ):
+        folder = Folder(
+            id=uuid.uuid4(),
+            ctype="folder",
+            title=title,
+            lang="en",
+            user_id=socrates.id
+        )
 
-    yield
+        session.add(folder)
+        session.commit()
 
-    session.delete(folder1)
-    session.delete(folder2)
-    session.commit()
+        return folder
+
+    return _create_folder
 
 
 @pytest.fixture(scope="function")
@@ -93,27 +85,45 @@ def node_with_tags(session, socrates):
     ])
     session.commit()
 
-    yield folder
-
-    session.delete(folder)
-    session.delete(tag_one)
-    session.delete(tag_two)
-    session.commit()
+    return folder
 
 
 @pytest.fixture(scope="function")
-def seed_receipt_doc(session, socrates):
-    doc = Document(
-        id=uuid.uuid4(),
-        ctype="document",
-        title="receipt_001.pdf",
-        lang="en",
-        user_id=socrates.id
-    )
-    session.add(doc)
-    session.commit()
+def doc_factory(session, socrates):
 
-    yield
+    def _create_doc(
+        title: str,
+        file_name: str = "receipt_001.pdf",
+        page_count: int = 2
+    ):
+        doc_id = uuid.uuid4()
+        doc_ver_id = uuid.uuid4()
+        doc = Document(
+            id=doc_id,
+            ctype="document",
+            title=title,
+            lang="en",
+            user_id=socrates.id
+        )
+        doc_ver = DocumentVersion(
+            id=doc_ver_id,
+            number=1,
+            file_name=file_name,
+            document_id=doc_id
+        )
 
-    session.delete(doc)
-    session.commit()
+        session.add_all([doc, doc_ver])
+        for page_number in range(1, page_count + 1):
+            page = Page(
+                id=uuid.uuid4(),
+                number=page_number,
+                document_version_id=doc_ver_id
+            )
+            session.add(page)
+
+        session.commit()
+
+        return doc
+
+    return _create_doc
+
