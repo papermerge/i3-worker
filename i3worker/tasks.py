@@ -108,7 +108,9 @@ def remove_folder_or_page_from_index(item_ids: list[str]):
 )
 def add_pages_to_index(page_ids: list[str]):
     db_session = db.get_db()
-    index_entities = [from_page(db_session, page_id) for page_id in page_ids]
+    index_entities = [
+        from_page(db_session, uuid.UUID(page_id)) for page_id in page_ids
+    ]
     logger.debug(
         f"Add pages to index: {index_entities}"
     )
@@ -162,11 +164,11 @@ def update_index(add_ver_id: str, remove_ver_id: str):
             logger.debug("Empty page ids. Nothing to remove from index")
 
 
-def from_page(db_session: Session, page_id: str) -> IndexEntity:
+def from_page(db_session: Session, page_id: uuid.UUID) -> IndexEntity:
     """Given page_id returns index entity"""
-    page = db.get_page(db_session, uuid.UUID(page_id))
-    last_doc_ver = page.document_version
-    doc = last_doc_ver.document
+    page = db.get_page(db_session, page_id)
+    last_doc_ver = db.get_doc_ver(db_session, page.document_version_id)
+    doc = db.get_doc(db_session, last_doc_ver.document_id)
 
     if len(page.text) == 0 and last_doc_ver.number > 1:
         logger.warning(

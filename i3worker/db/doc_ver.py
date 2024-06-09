@@ -6,6 +6,17 @@ from i3worker import models
 from i3worker.db.models import (Document, DocumentVersion, Page)
 
 
+def get_doc(db_session: Session, doc_id: UUID) -> models.Document:
+    with db_session as session:  # noqa
+        stmt = select(Document).where(
+            Document.id==doc_id
+        )
+        db_doc = session.scalars(stmt).one()
+        model_doc = models.Document.model_validate(db_doc)
+
+    return model_doc
+
+
 def get_docs(db_session: Session, doc_ids: list[UUID]) -> list[models.Document]:
     with db_session as session:  # noqa
         stmt = select(Document).where(
@@ -47,7 +58,7 @@ def get_doc_ver(
     Returns last version of the document
     identified by doc_id
     """
-    with Session(engine) as session:  # noqa
+    with db_session as session:  # noqa
         stmt = select(DocumentVersion).where(DocumentVersion.id == id)
         db_doc_ver = session.scalars(stmt).one()
         model_doc_ver = models.DocumentVersion.model_validate(db_doc_ver)

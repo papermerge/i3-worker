@@ -127,3 +127,43 @@ def doc_factory(session, socrates):
 
     return _create_doc
 
+
+@pytest.fixture(scope="function")
+def page_factory(session, socrates):
+
+    def _create_page(
+        title: str,
+        text: str = '',
+        page_number: int = 1
+    ):
+        doc_id = uuid.uuid4()
+        doc_ver_id = uuid.uuid4()
+        doc = Document(
+            id=doc_id,
+            ctype="document",
+            title=title,
+            lang="en",
+            user_id=socrates.id
+        )
+        doc_ver = DocumentVersion(
+            id=doc_ver_id,
+            number=1,
+            file_name=title,
+            document_id=doc_id
+        )
+
+        session.add_all([doc, doc_ver])
+
+        page = Page(
+            id=uuid.uuid4(),
+            number=page_number,
+            text=text,
+            document_version_id=doc_ver_id
+        )
+        session.add(page)
+
+        session.commit()
+
+        return page
+
+    return _create_page
