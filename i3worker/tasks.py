@@ -50,19 +50,18 @@ def index_add_docs(doc_ids: list[str]):
     """Add list of documents to index"""
     logger.debug(f"Add docs with {doc_ids} BEGIN")
     db_session = db.get_db()
-    docs = db.get_docs(
-        db_session,
-        [uuid.UUID(doc_id) for doc_id in doc_ids]
-    )
     index = get_index()
+    with db_session() as session:
+        docs = db.get_docs(
+            session,
+            [uuid.UUID(doc_id) for doc_id in doc_ids]
+        )
 
-    for doc in docs:
-        models = from_document(doc)
-        for model in models:
-            logger.debug(f"Adding {model} to index")
-            index.add(model)
-
-    logger.debug(f"Add docs with {doc_ids} END")
+        for doc in docs:
+            items = from_document(session, doc)
+            for item in items:
+                logger.debug(f"Adding {item} to index")
+                index.add(item)
 
 
 @shared_task(name=constants.INDEX_REMOVE_NODE)
@@ -181,22 +180,17 @@ def from_folder(db_session: Session, node: models.Node) -> IndexEntity:
     return index_entity
 
 
-def from_document(db_session: Session, node: models.Node | models.Document) -> list[IndexEntity]:
+def from_document(db_session: Session, node: models.Document) -> list[IndexEntity]:
     result = []
-    if isinstance(node, models.Node):
-        doc = node.document
-    else:
-        doc = node  # i.e. node is instance of Document
 
     last_ver: models.DocumentVersion = db.get_last_version(db_session, node.id)
     for page in db.get_pages(db_session, last_ver.id):
         if len(page.text) == 0 and last_ver.number > 1:
             logger.warning(
                 f"NO OCR TEXT FOUND! version={last_ver.number} "
-                f" title={doc.title}"
+                f" title={node.title}"
                 f" page.number={page.number}"
-                f" doc.ID={doc.id}"
-                f" node.ID={node.id}"
+                f" doc.ID={node.id}"
             )
 
         index_entity = IndexEntity(

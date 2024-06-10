@@ -29,6 +29,43 @@ def get_node(
     return model_node
 
 
+def get_nodes(
+    db_session: Session,
+    node_ids: list[UUID] | None = None
+) -> list[models.Document | models.Folder]:
+    items = []
+    if node_ids is None:
+        node_ids = []
+
+    with db_session as session:
+        if len(node_ids) > 0:
+            stmt = select(Node).filter(
+                Node.id.in_(node_ids)
+            )
+        else:
+            stmt = select(Node)
+
+        nodes = session.scalars(stmt).all()
+        colored_tags_stmt = select(ColoredTag).where(
+            ColoredTag.object_id.in_([n.id for n in nodes])
+        )
+        colored_tags = session.scalars(colored_tags_stmt).all()
+
+        for node in nodes:
+            tags = _get_tags_for(colored_tags, node.id)
+            node.tags = tags
+            if node.ctype == 'folder':
+                items.append(
+                    models.Folder.model_validate(node)
+                )
+            else:
+                items.append(
+                    models.Document.model_validate(node)
+                )
+
+    return items
+
+
 def _get_tags_for(
     colored_tags: Sequence[ColoredTag],
     node_id: UUID

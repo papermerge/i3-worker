@@ -66,3 +66,6 @@ class Folder(BaseModel):
     title: str
     tags: list[Tag] = []
     user_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
