@@ -9,7 +9,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.12"
 celery = {version = "^5.4", extras = ["redis"]}
-salinic = "^0.4.0"
+salinic = {path = "/home/eugen/GitHub/papermerge/SalinicProj", develop = true}
 typer = "^0.12.3"
 pydantic = "^2.7.1"
 pydantic-settings = "^2.2.1"
@@ -27,7 +27,8 @@ pgsql = ["psycopg2", "psycopg2-binary"]
 databases = ["mysqlclient", "psycopg2"]
 
 [tool.poetry.scripts]
-i3w = 'i3worker.cli.i3w:app'
+index = 'i3worker.cli.index:app'
+schema = 'i3worker.cli.schema:app'
 
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.12.2"

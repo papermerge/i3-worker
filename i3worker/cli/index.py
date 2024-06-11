@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 
 import typer
-from rich import print_json, print
+from rich import print_json
 from salinic import IndexRW, create_engine
 from typing_extensions import Annotated
 
@@ -80,3 +80,4 @@ def index_cmd(
 
         for item in items:
             index.add(item)
+

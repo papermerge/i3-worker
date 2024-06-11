@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import ConfigDict
 from salinic import types
-from salinic.field import KeywordField, TextField, UUIDField
+from salinic.field import KeywordField, TextField, UUIDField, StringField
 from salinic.schema import Schema
 from typing_extensions import Annotated
 
@@ -30,7 +30,7 @@ class IndexEntity(Schema):
     # document ID to whom this page belongs
     document_id: Annotated[
         Optional[str],
-        UUIDField(index=False, general_search=True)
+        TextField(index=True, general_search=True, group=True)
     ] = None
 
     lang: Annotated[
@@ -40,7 +40,7 @@ class IndexEntity(Schema):
 
     user_id: Annotated[
         str,
-        UUIDField(index=False)
+        StringField(index=True)
     ]
 
     title: Annotated[
