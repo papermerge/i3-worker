@@ -9,7 +9,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.12"
 celery = {version = "^5.4", extras = ["redis"]}
-salinic = {path = "/home/eugen/GitHub/papermerge/SalinicProj", develop = true}
+salinic = "^0.5.0"
 typer = "^0.12.3"
 pydantic = "^2.7.1"
 pydantic-settings = "^2.2.1"
@@ -20,6 +20,7 @@ psycopg2 = { version = "^2.9.2", optional = true}
 psycopg2-binary = { version = "^2.9.2", optional = true}
 mysqlclient = {version = "^2.2.0", optional = true}
 rich = "^13.7.1"
+glom = "^23.5.0"
 
 [tool.poetry.extras]
 mysql = ["mysqlclient"]

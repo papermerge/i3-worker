@@ -158,7 +158,6 @@ def from_page(db_session: Session, page_id: uuid.UUID) -> IndexEntity:
         title=doc.title,
         user_id=str(doc.user_id),
         document_id=str(doc.id),
-        document_version_id=str(last_doc_ver.id),
         page_number=page.number,
         text=page.text,
         entity_type=PAGE,
@@ -174,7 +173,7 @@ def from_folder(db_session: Session, node: models.Node) -> IndexEntity:
         title=node.title,
         user_id=str(node.user_id),
         entity_type=FOLDER,
-        tags=[tag.name for tag in node.tags]
+        tags=node.tags
     )
 
     return index_entity
@@ -198,7 +197,6 @@ def from_document(db_session: Session, node: models.Document) -> list[IndexEntit
             title=node.title,
             user_id=str(node.user_id),
             document_id=str(node.id),
-            document_version_id=str(last_ver.id),
             page_number=page.number,
             text=page.text,
             entity_type=PAGE,

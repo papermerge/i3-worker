@@ -57,11 +57,6 @@ class IndexEntity(Schema):
     # None in case of folder entity
     page_number: types.OptionalNumeric = None
 
-    entity_type: Annotated[
-        str,
-        KeywordField()
-    ]  # folder | page
-
     tags: Annotated[
         Optional[list[str]],
         KeywordField(multi_value=True)
@@ -71,5 +66,4 @@ class IndexEntity(Schema):
         return f'IndexEntity(id={self.id}, title={self.title}, '\
             f'document_id={self.document_id},' \
             f'number={self.page_number},' \
-            f'text=|{self.text}|,' \
-            f'type={self.entity_type})'
+            f'text=|{self.text})'
