@@ -2,7 +2,6 @@ from sqlalchemy import select
 from i3worker import db
 from i3worker.db.models import Node
 from i3worker.tasks import from_folder, from_document, from_page
-from i3worker.schema import PAGE, FOLDER
 
 
 def test_from_folder(session, folder_factory):
