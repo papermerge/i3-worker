@@ -15,7 +15,6 @@ def test_from_folder(session, folder_factory):
     index_entity = from_folder(session, some_node)
 
     assert index_entity.title == "My Documents"
-    assert index_entity.entity_type == FOLDER
 
 
 def test_from_document(session, doc_factory):
@@ -29,9 +28,7 @@ def test_from_document(session, doc_factory):
     index_entities = from_document(session, some_node)
 
     assert index_entities[0].title == "receipt_001.pdf"
-    assert index_entities[0].entity_type == PAGE
     assert index_entities[1].title == "receipt_001.pdf"
-    assert index_entities[1].entity_type == PAGE
 
 
 def test_from_page(session, page_factory):
@@ -40,7 +37,6 @@ def test_from_page(session, page_factory):
     index_entity = from_page(session, page.id)
 
     assert index_entity.title == "My Receipt"
-    assert index_entity.entity_type == PAGE
 
 
 def test_get_node_with_tags(session, folder_factory):

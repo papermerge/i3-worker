@@ -11,13 +11,15 @@ from i3worker.db.models import (
     User
 )
 from i3worker import db
-from i3worker.db import Base, engine
+from i3worker.db import Base, get_engine
 
 
 @pytest.fixture(scope="function")
 def session():
+    url = "sqlite:///test_db.sqlite3"
+    engine = get_engine(url)
     Base.metadata.create_all(engine)
-    db_session = db.get_db()
+    db_session = db.get_db(url=url)
     try:
         with db_session() as se:
             yield se

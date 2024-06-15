@@ -8,7 +8,7 @@ from .doc_ver import (
 )
 from .node import get_node, get_nodes
 from .session import get_db
-from .engine import engine
+from .engine import get_engine
 from .base import Base
 
 __all__ = [
@@ -22,5 +22,6 @@ __all__ = [
     'get_page',
     'get_db',
     'Base',
+    'get_engine',
     'engine'
 ]
