@@ -1,69 +1,71 @@
-from typing import Optional
-
-from pydantic import ConfigDict
-from salinic import types
-from salinic.field import KeywordField, TextField, UUIDField, StringField
-from salinic.schema import Schema
-from typing_extensions import Annotated
-
-FOLDER = 'folder'
-PAGE = 'page'
+from enum import Enum
+from uuid import UUID
+from pydantic import (BaseModel, ConfigDict, Field)
 
 
-class IndexEntity(Schema):
-    """Index entity
+class Tag(BaseModel):
+    name: str
+    bg_color: str = '#c41fff'
+    fg_color: str = '#FFFFF'
 
-    Documents are indexed by page. Note that we place in same index
-    both folders and documents, and because the main index entity is page -
-    we end up having in index two types of entities: folders and pages.
-    """
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        lang_field_name='lang'
-    )
+    # Config
+    model_config = ConfigDict(from_attributes=True)
 
-    id: Annotated[
-        str,
-        UUIDField(primary_key=True, general_search=True)
-    ]  # page id | node_id
 
-    # document ID to whom this page belongs
-    document_id: Annotated[
-        Optional[str],
-        TextField(index=True, general_search=True, group=True)
-    ] = None
+class NodeType(str, Enum):
+    document = "document"
+    folder = "folder"
 
-    lang: Annotated[
-        str,
-        KeywordField()
-    ] = 'en'
 
-    user_id: Annotated[
-        str,
-        StringField(index=True)
-    ]
+class Node(BaseModel):
+    id: UUID
+    title: str
+    ctype: NodeType
+    user_id: UUID
+    tags: list[str]
 
-    title: Annotated[
-        str,
-        TextField(general_search=True, multi_lang=True)
-    ]  # document or folder title
+    # Config
+    model_config = ConfigDict(from_attributes=True)
 
-    # text is None in case folder entity
-    text:  Annotated[
-        Optional[str],
-        TextField(general_search=True, multi_lang=True)
-    ] = None
 
-    # None in case of folder entity
-    page_number: types.OptionalNumeric = None
+class Page(BaseModel):
+    id: UUID
+    number: int
+    document_version_id: UUID
+    lang: str = 'deu'
+    text: str | None = None
+    # Config
+    model_config = ConfigDict(from_attributes=True)
 
-    tags: Annotated[
-        Optional[list[str]],
-        KeywordField(multi_value=True)
-    ] = []
 
-    def __str__(self):
-        return f'IndexEntity(id={self.id}, title={self.title}, '\
-            f'document_id={self.document_id},' \
-            f'number={self.page_number},' \
-            f'text=|{self.text})'
+class DocumentVersion(BaseModel):
+    id: UUID
+    number: int
+    file_name: str | None = None
+    size: int = 0
+    page_count: int = 0
+    document_id: UUID
+    pages: list[Page] = []
+
+    # Config
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Document(BaseModel):
+    id: UUID
+    versions: list[DocumentVersion] = []
+    title: str
+    tags: list[Tag] = []
+    user_id: UUID
+    # Config
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Folder(BaseModel):
+    id: UUID
+    title: str
+    tags: list[Tag] = []
+    user_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+

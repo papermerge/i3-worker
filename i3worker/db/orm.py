@@ -9,8 +9,30 @@ from i3worker.db.base import Base
 CType = Literal["document", "folder"]
 
 
+class NodeTagsAssociation(Base):
+    __tablename__ = "nodes_tags"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    node_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("nodes.id"))
+    tag_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("tags.id"),
+    )
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True
+    )
+    name: Mapped[str]
+    bg_color: Mapped[str] = "#ff0000"
+    fg_color: Mapped[str] = "#ffff00"
+    description: Mapped[str] = ""
+    pinned: Mapped[bool] = False
+
+
+
 class Node(Base):
-    __tablename__ = "core_basetreenode"
+    __tablename__ = "nodes"
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True,
@@ -20,8 +42,8 @@ class Node(Base):
     ctype: Mapped[CType]
     # actually `lang` attribute should be part of the document
     lang: Mapped[str] = mapped_column(String(8))
-    tags: list[str] = []
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("core_user.id"))
+    tags: Mapped[list["Tag"]] = relationship(secondary="nodes_tags", lazy="selectin")
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(
         insert_default=func.now()
     )
@@ -37,11 +59,11 @@ class Node(Base):
 
 
 class Folder(Node):
-    __tablename__ = "core_folder"
+    __tablename__ = "folders"
 
     id: Mapped[UUID] = mapped_column(
-        'basetreenode_ptr_id',
-        ForeignKey("core_basetreenode.id"),
+        'node_id',
+        ForeignKey("nodes.id"),
         primary_key=True,
         insert_default=uuid.uuid4()
     )
@@ -52,11 +74,11 @@ class Folder(Node):
 
 
 class Document(Node):
-    __tablename__ = "core_document"
+    __tablename__ = "documents"
 
     id: Mapped[UUID] = mapped_column(
-        'basetreenode_ptr_id',
-        ForeignKey("core_basetreenode.id"),
+        'node_id',
+        ForeignKey("nodes.id"),
         primary_key=True,
         insert_default=uuid.uuid4()
     )
@@ -67,18 +89,18 @@ class Document(Node):
 
 
 class DocumentVersion(Base):
-    __tablename__ = "core_documentversion"
+    __tablename__ = "document_versions"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     number: Mapped[int]
     file_name: Mapped[str]
     document_id: Mapped[UUID] = mapped_column(
-        ForeignKey("core_document.basetreenode_ptr_id")
+        ForeignKey("documents.node_id")
     )
 
 
 class Page(Base):
-    __tablename__ = "core_page"
+    __tablename__ = "pages"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     number: Mapped[int]
@@ -89,36 +111,12 @@ class Page(Base):
         insert_default=''
     )
     document_version_id: Mapped[UUID] = mapped_column(
-        ForeignKey("core_documentversion.id")
-    )
-
-
-class Tag(Base):
-    __tablename__ = "core_tag"
-    id: Mapped[UUID] = mapped_column(
-        primary_key=True
-    )
-    name: Mapped[str]
-    bg_color: Mapped[str] = "#ff0000"
-    fg_color: Mapped[str] = "#ffff00"
-    description: Mapped[str] = ""
-    pinned: Mapped[bool] = False
-
-
-class ColoredTag(Base):
-    __tablename__ = "core_coloredtag"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    object_id: Mapped[UUID]
-    tag_id: Mapped[UUID] = mapped_column(
-        ForeignKey("core_tag.id")
-    )
-    tag: Mapped["Tag"] = relationship(
-        primaryjoin="Tag.id == ColoredTag.tag_id"
+        ForeignKey("document_versions.id")
     )
 
 
 class User(Base):
-    __tablename__ = "core_user"
+    __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True,

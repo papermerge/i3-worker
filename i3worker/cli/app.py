@@ -1,21 +1,23 @@
 import uuid
 from typing import Optional
-
 import typer
-from rich import print_json
-from salinic import IndexRW, create_engine
+from rich import print_json, print
+from salinic import SchemaManager, create_engine, IndexRW, Search
 from typing_extensions import Annotated
 
-from i3worker import db, config, models
-from i3worker.schema import FOLDER, PAGE, IndexEntity
+from i3worker.db.engine import Session
+from i3worker import schema, config
+from i3worker.db import api
+from i3worker.index import FOLDER, PAGE, IndexEntity
 
 
-app = typer.Typer(help="Index documents")
+app = typer.Typer(help="i3 command line interface")
 settings = config.get_settings()
 engine = create_engine(settings.papermerge__search__url)
+schema_manager = SchemaManager(engine, model=IndexEntity)
+
 
 index = IndexRW(engine, schema=IndexEntity)
-Session = db.get_db()
 
 NodeIDsType = Annotated[
     Optional[list[uuid.UUID]],
@@ -38,15 +40,15 @@ def index_cmd(
     """
 
     with Session() as db_session:
-        nodes = db.get_nodes(db_session, node_ids)
+        nodes = api.get_nodes(db_session, node_ids)
         items = []  # to be added to the index
         for node in nodes:
-            if isinstance(node, models.Document):
-                last_ver = db.get_last_version(
+            if isinstance(node, schema.Document):
+                last_ver = api.get_last_version(
                     db_session,
                     doc_id=node.id
                 )
-                pages = db.get_pages(db_session, last_ver.id)
+                pages = api.get_pages(db_session, last_ver.id)
                 for page in pages:
                     item = IndexEntity(
                         id=str(page.id),
@@ -81,3 +83,44 @@ def index_cmd(
         for item in items:
             index.add(item)
 
+
+@app.command(name="config")
+def print_config_cmd():
+    """Print config settings"""
+    print_json(settings.json())
+
+
+@app.command(name="apply")
+def apply_cmd(dry_run: bool = False):
+    """Apply schema fields"""
+
+    if dry_run:
+        print_json(data=schema_manager.apply_dict_dump())
+    else:
+        schema_manager.apply()
+
+
+@app.command(name="delete")
+def delete_cmd(dry_run: bool = False):
+    """Delete schema fields"""
+    if dry_run:
+        print_json(data=schema_manager.delete_dict_dump())
+    else:
+        schema_manager.delete()
+
+
+@app.command(name="create")
+def create_cmd(dry_run: bool = False):
+    """Create schema fields"""
+    if dry_run:
+        print_json(data=schema_manager.create_dict_dump())
+    else:
+        schema_manager.create()
+
+
+@app.command(name="search")
+def search_command(q: str, user_id: uuid.UUID, page_number: int = 1, page_size: int = 10):
+    """Search documents"""
+    sq = Search(IndexEntity).query(q, page_number=page_number, page_size=page_size)
+    results = index.search(sq, user_id=str(user_id))
+    print(results)
