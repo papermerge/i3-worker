@@ -1003,24 +1003,22 @@ jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "salinic"
-version = "0.6.0"
+version = "0.6.1"
 description = "Search abstraction layer"
 optional = false
-python-versions = "^3.13"
-files = []
-develop = true
+python-versions = "<4.0,>=3.13"
+files = [
+    {file = "salinic-0.6.1-py3-none-any.whl", hash = "sha256:01db1d2861b4fc8b4bf8e451553668479bd229eca4090155e9c760344080ebea"},
+    {file = "salinic-0.6.1.tar.gz", hash = "sha256:b88181ce18fa1a434aa39d1b7d96387605e6610c4cda681a03e9bab2a77547e9"},
+]
 
 [package.dependencies]
-glom = "^24.11"
-pydantic = "^2.10"
-requests = "^2.31.0"
+glom = ">=24.11,<25.0"
+pydantic = ">=2.10,<3.0"
+requests = ">=2.31.0,<3.0.0"
 
 [package.extras]
 xapian = ["xapianpy (==1.4.22.post2406040406)"]
-
-[package.source]
-type = "directory"
-url = "../SalinicProj"
 
 [[package]]
 name = "shellingham"
@@ -1282,4 +1280,4 @@ pg = ["psycopg2"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "ba92cbe5368b4bc80225a6b10e7a1f931c83fb4a7473ecbfe3c48fec50878f05"
+content-hash = "c4025879e70ec885decec51e7cd3eb390c736c42a2d352b4540d6a15773e811b"

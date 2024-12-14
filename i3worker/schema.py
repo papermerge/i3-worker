@@ -1,6 +1,7 @@
 from enum import Enum
 from uuid import UUID
-from pydantic import (BaseModel, ConfigDict, Field)
+from typing import Optional, List
+from pydantic import (BaseModel, ConfigDict)
 
 
 class Tag(BaseModel):
@@ -22,7 +23,7 @@ class Node(BaseModel):
     title: str
     ctype: NodeType
     user_id: UUID
-    tags: list[str]
+    tags: Optional[List[Tag]] = []
 
     # Config
     model_config = ConfigDict(from_attributes=True)

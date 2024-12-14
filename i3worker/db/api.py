@@ -105,18 +105,10 @@ def get_node(
     db_session: Session,
     node_id: UUID
 ) -> [schema.Document | schema.Folder]:
-    stmt = select(Node).where(
+    stmt = select(Node).options(selectinload(Node.tags)).where(
         Node.id==node_id
     )
     db_node = db_session.scalars(stmt).one()
-    colored_tags_stmt = select(Tag).where(
-        Tag.object_id==node_id
-    )
-    colored_tags = db_session.scalars(colored_tags_stmt).all()
-    db_node.tags = [
-        tag.name for tag in _get_tags_for(colored_tags, db_node.id)
-    ]
-
     model_node = schema.Node.model_validate(db_node)
 
     return model_node
