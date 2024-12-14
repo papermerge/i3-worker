@@ -123,7 +123,7 @@ def update_index(add_ver_id: str, remove_ver_id: str):
             logger.warning(f"Index remove doc version {remove_ver_id} not found")
 
         if add_ver:  # doc ver is there, but does it have pages?
-            add_page_ids = [str(page.id) for page in add_ver.pages.all()]
+            add_page_ids = [str(page.id) for page in add_ver.pages]
             if len(add_page_ids) > 0:
                 # doc ver is there and it has pages
                 add_pages_to_index(add_page_ids)
@@ -131,7 +131,7 @@ def update_index(add_ver_id: str, remove_ver_id: str):
                 logger.debug("Empty page ids. Nothing to add to index")
 
         if remove_ver:  # doc ver is there, but does it have pages?
-            remove_page_ids = [str(page.id) for page in remove_ver.pages.all()]
+            remove_page_ids = [str(page.id) for page in remove_ver.pages]
             if len(remove_page_ids) > 0:
                 # doc ver is there and it has pages
                 remove_folder_or_page_from_index(remove_page_ids)
@@ -174,7 +174,7 @@ def from_folder(db_session: Session, node: schema.Node) -> IndexEntity:
         title=node.title,
         user_id=str(node.user_id),
         entity_type=FOLDER,
-        tags=node.tags
+        tags=[t.name for t in node.tags]
     )
 
     return index_entity
@@ -186,7 +186,7 @@ def from_document(db_session: Session, node: schema.Document) -> list[IndexEntit
     with Session() as db_session:
         last_ver: schema.DocumentVersion = api.get_last_version(db_session, node.id)
         for page in api.get_pages(db_session, last_ver.id):
-            if len(page.text) == 0 and last_ver.number > 1:
+            if (page.text is None) or (len(page.text) == 0 and last_ver.number > 1):
                 logger.warning(
                     f"NO OCR TEXT FOUND! version={last_ver.number} "
                     f" title={node.title}"
@@ -202,7 +202,7 @@ def from_document(db_session: Session, node: schema.Document) -> list[IndexEntit
                 page_number=page.number,
                 text=page.text,
                 entity_type=PAGE,
-                tags=node.tags,
+                tags=[t.name for t in node.tags],
             )
             result.append(index_entity)
 

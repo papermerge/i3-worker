@@ -1,27 +1,24 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.13-alpine
 
 WORKDIR /app
-ENV VIRTUAL_ENV=/app/venv
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+RUN apk update && apk add linux-headers \
     python3-dev \
     libpq-dev \
+    libc-dev \
     imagemagick \
     gcc \
-    poppler-utils &&\
-    rm -rf /var/lib/apt/lists/*
+    poppler-utils
+
 
 COPY poetry.lock pyproject.toml README.md LICENSE /app/
 
-RUN pip install --upgrade poetry && \
-    python -m venv ${VIRTUAL_ENV} && \
-    poetry install -E pgsql -v
+RUN pip install --upgrade poetry
 
 COPY i3worker /app/i3worker/
+RUN poetry install -E pg -v
 
-COPY docker/run.bash /run.bash
-RUN chmod +x /run.bash
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-ENTRYPOINT ["/run.bash"]
-CMD ["worker"]
+ENTRYPOINT ["/entrypoint.sh"]

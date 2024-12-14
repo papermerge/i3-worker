@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "i3worker"
-version = "0.2.0"
+version = "0.3.0"
 description = "Sync DB with search index"
 authors = ["Eugen Ciur <eugen@papermerge.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.13"
 celery = {version = "^5.4", extras = ["redis"]}
-salinic = { develop = true, path = "/home/eugen/GitHub/papermerge/SalinicProj" }
+salinic = "0.6.1"
 typer = "^0.15"
 pydantic = "^2.10"
 pydantic-settings = "^2.2.1"
@@ -37,7 +37,7 @@ taskipy = "^1.12.2"
 pytest = "^8.2.2"
 
 [tool.taskipy.tasks]
-worker = "celery -A i3worker worker -E -c 4 -Q demo_i3"
+worker = "celery -A i3worker worker"
 
 [build-system]
 requires = ["poetry-core"]
