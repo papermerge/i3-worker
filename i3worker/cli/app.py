@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Optional
 import typer
@@ -16,7 +17,7 @@ settings = config.get_settings()
 engine = create_engine(settings.papermerge__search__url)
 schema_manager = SchemaManager(engine, model=IndexEntity)
 
-
+logger = logging.getLogger(__name__)
 index = IndexRW(engine, schema=IndexEntity)
 
 NodeIDsType = Annotated[
@@ -38,8 +39,9 @@ def index_cmd(
      start indexing the rest of the documents
      `--dry-run`
     """
-
+    logger.debug("index cmd")
     with Session() as db_session:
+        logger.debug("getting nodes")
         nodes = api.get_nodes(db_session, node_ids)
         items = []  # to be added to the index
         for node in nodes:
@@ -79,8 +81,9 @@ def index_cmd(
         if rebuild:
             # drop all documents from the index
             index.remove(query="*:*")
-
+        logger.debug("adding items")
         for item in items:
+            logger.debug(f"adding item {item}")
             index.add(item)
 
 
