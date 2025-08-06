@@ -841,22 +841,25 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pydantic-settings"
-version = "2.7.0"
+version = "2.10.1"
 description = "Settings management using Pydantic"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydantic_settings-2.7.0-py3-none-any.whl", hash = "sha256:e00c05d5fa6cbbb227c84bd7487c5c1065084119b750df7c8c1a554aed236eb5"},
-    {file = "pydantic_settings-2.7.0.tar.gz", hash = "sha256:ac4bfd4a36831a48dbf8b2d9325425b549a0a6f18cea118436d728eb4f1c4d66"},
+    {file = "pydantic_settings-2.10.1-py3-none-any.whl", hash = "sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796"},
+    {file = "pydantic_settings-2.10.1.tar.gz", hash = "sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee"},
 ]
 
 [package.dependencies]
 pydantic = ">=2.7.0"
 python-dotenv = ">=0.21.0"
+typing-inspection = ">=0.4.0"
 
 [package.extras]
+aws-secrets-manager = ["boto3 (>=1.35.0)", "boto3-stubs[secretsmanager]"]
 azure-key-vault = ["azure-identity (>=1.16.0)", "azure-keyvault-secrets (>=4.8.0)"]
+gcp-secret-manager = ["google-cloud-secret-manager (>=2.23.1)"]
 toml = ["tomli (>=2.0.1)"]
 yaml = ["pyyaml (>=6.0.1)"]
 
@@ -1352,4 +1355,4 @@ pg = ["psycopg2"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "87897a0f6b5b7d39c6ae5d6b150c1f407ddb8a8dc6cfa814414da8c8032ad4f2"
+content-hash = "847c72168c70c74090ee2f8a82bd35ddcd86eb69b7a5c8bcba1f0094cd203fac"
