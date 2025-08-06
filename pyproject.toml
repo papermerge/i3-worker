@@ -8,7 +8,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.13"
-celery = {version = "^5.4", extras = ["redis"]}
+celery = {version = "^5.5", extras = ["redis"]}
 salinic = "0.6.1"
 typer = "^0.16"
 pydantic = "^2.11"
@@ -34,7 +34,7 @@ taskipy = "^1.12.2"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.2.2"
+pytest = "^8.4.1"
 
 [tool.taskipy.tasks]
 worker = "celery -A i3worker worker"
