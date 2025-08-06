@@ -10,7 +10,7 @@ license = "MIT"
 python = "^3.13"
 celery = {version = "^5.4", extras = ["redis"]}
 salinic = "0.6.1"
-typer = "^0.15"
+typer = "^0.16"
 pydantic = "^2.11"
 pydantic-settings = "^2.2.1"
 pyyaml = "^6.0"
