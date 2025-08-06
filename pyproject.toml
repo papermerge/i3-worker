@@ -18,7 +18,7 @@ pdf2image = "^1.17.0"
 sqlalchemy = "^2.0"
 psycopg2 = { version = "^2.9", optional = true}
 mysqlclient = {version = "^2.2", optional = true}
-rich = "^13.9"
+rich = "^14.1"
 glom = "^24.11"
 
 [tool.poetry.extras]
