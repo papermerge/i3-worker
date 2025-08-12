@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "i3worker"
-version = "0.3.1b1"
+version = "0.3.1b2"
 description = "Sync DB with search index"
 authors = ["Eugen Ciur <eugen@papermerge.com>"]
 readme = "README.md"
