@@ -1,4 +1,4 @@
-FROM python:3.13-alpine
+FROM python:3.13-alpine3.22
 
 WORKDIR /app
 
@@ -8,8 +8,10 @@ RUN apk update && apk add linux-headers \
     libc-dev \
     imagemagick \
     gcc \
-    poppler-utils
-
+    poppler-utils && \
+    # ensure all packages are up-to-date
+    apk upgrade --no-cache && \
+    rm -rf /var/cache/apk/*
 
 COPY poetry.lock pyproject.toml README.md LICENSE /app/
 
